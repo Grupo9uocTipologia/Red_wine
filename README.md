@@ -7,6 +7,6 @@ Componentes:
 
 Ficheros:
 - Red_wine.Rmd con el código R y el markdown del PDF
-- Red_wine.Pdf con las respuestas 
+- Red_wine.pdf con las respuestas 
 
 Junio 2019
