@@ -6,7 +6,7 @@ Componentes:
 - Alfredo Delsors Mérida-Nicolich
 
 Ficheros:
-- Red_wine.Rmd con el código R y el markdown del PDF
-- Red_wine.pdf con las respuestas 
+- Red_wine.Rmd con el código R y el markdown
+- Red_wine.pdf con las respuestas, generado a partir del anterior
 
 Junio 2019
