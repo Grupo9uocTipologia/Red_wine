@@ -49,26 +49,28 @@ Observamos que los datos asignados por R son los especificados en el dataset: 11
 El conjunto de datos está constituido por 11 variables de tipo numérico con cada una de las características del vino tinto y una variable independiente con el resultado de la calidad de éste.
 
 El dataset esta compuesto por 1599 registros que corresponden a 1599 vinos tintos diferentes, con las siguientes variables de entrada (basadas en pruebas fisicoquímicas):
-   1 - acidez fija
-   2 - acidez volatil
-   3 - ácido cítrico
-   4 - azucar residual
-   5 - cloruros
-   6 - dióxido de sulfuro libre
-   7 - dióxido de sulfuro total
-   8 - densidad
-   9 - pH
-   10 - sulfatos
-   11 - alcohol
+
+ *  acidez fija
+ *  acidez volatil
+ *  ácido cítrico
+ *  azucar residual
+ *  cloruros
+ *  dióxido de sulfuro libre
+ *  dióxido de sulfuro total
+ *  densidad
+ *  pH
+ *  sulfatos
+ *  alcohol
    
 Y la siguiente variable de salida (basada en datos sensoriales):
-   12 - calidad (puntuación entre 0 y 10)
+
+ *  calidad (puntuación entre 0 y 10)
 
 ## 1.2 Importancia y objetivos de los análisis
 
 A partir de este conjunto de datos se plantea la problemática de determinar qué variables son las que determinan la calidad de un vino tinto.
 
-Además, se podrán crear modelos de regresión que permitan predecir la calidad de un vino en función de sus características, así como realizar contrastes de hipótesis que ayuden a identificar propiedades interesantes en las muestras que puedan ser inferidas a partir de los datos.
+Además, se podrán crear modelos de regresión que permitirán predecir la calidad de un vino en función de sus características, así como realizar contrastes de hipótesis que ayuden a identificar propiedades interesantes en las muestras que puedan ser inferidas a partir de los datos.
 
 Estos análisis adquieren una gran relevancia tanto en sectores vinícolas como en restaurantes o licorerías. Por ejemplo, las bodegas podrían conocer la calidad de un vino tinto a partir de sus características y ponerle precio, o los restaurantes, podrían sugerir un vino según el entrante seleccionado o elegir los vinos para su bodega.
 
@@ -203,12 +205,13 @@ library(nortest)
 alpha = 0.05
 col.names = colnames(redwine)
 for (i in 1:ncol(redwine)) {
-  if (i == 1) cat("Variables que no siguen una distribución normal:")
+  if (i == 1) cat("Variables que no siguen una distribución normal:\n\n")
   if (is.integer(redwine[,i]) | is.numeric(redwine[,i])) {
     p_val = ad.test(redwine[,i])$p.value
     if (p_val < alpha) {
       cat(col.names[i])
       if (i < ncol(redwine) - 1) cat(", ")
+      if (i %% 3 == 0) cat("\n")
     }
   }
 }
@@ -305,7 +308,7 @@ shapiro.test(redwine$quality)
 
 Vemos que todos los test, al tener un valor p-valor mas pequeño que el 0.05, niegan la hipotesis nula que asume al normalidad.
 
-De todas maneras, al tratarse de una muestra grande, mediante la teorema central del límite podemos asumir que su distribución se aproxima bien una distribucion normal.
+De todas maneras, al tratarse de una muestra grande, por el teorema central del límite, podemos asumir que su distribución aproxima bien una distribucion normal.
 
 ### 4.2.2 Homogeneidad de la varianza
 
@@ -437,7 +440,7 @@ Segun el coeficiente de correlación de Spearman, los atributos que tienen mayor
 
 ### 4.3.2 Contraste de hipótesis
 
-Procederemos ahora ha hacer un contraste de hipótesis sobre las tres variables que hemos encontrado en el apartado anterior. Para ello buscaremos la mediana de las tres variables, para que nos sirva de valor limite. Compararemos si, es cuando el valor de la variable es menor al valor medio cuando influye en la calidad, o por el contrario, si influye cuando es superior al valor medio
+Procederemos ahora ha hacer un contraste de hipótesis sobre las tres variables que hemos encontrado en el apartado anterior. Para ello buscaremos la mediana de las tres variables, para que nos sirva de valor limite. Compararemos si, es cuando el valor de la variable es menor al valor medio cuando influye en la calidad, o por el contrario, si influye cuando es superior al valor medio.
 
 ```{r}
 #medianas de  volatile.acidity, alcohol y sulphates
@@ -479,6 +482,7 @@ H_{1}: & \mu1 - \mu2 < 0\\
 \end{array}
 \right.
 $$
+
 Donde $\mu1$ es la media de la población de la que se extrae la primera muestra y $\mu2$ es la media de la población de la que extrae la segunda. 
 
 Tomaremos un nivel de significación del 0,05.
@@ -528,9 +532,9 @@ Tomaremos un nivel de significación del 0,05.
 t.test(redwineSinf, redwineSsup, alternative = "less")
 ```
 
-Del contraste de hipotesis sacamos que aceptamos la hipotesis alternativa en el caso de los sulfatos, ya que es inferior el p-valor al nivel de significacion, de manera que concluimos que **a mayores sulfatos (mas de `r sulphates.median`) mejor calidad de vino**.
+Del contraste de hipotesis sacamos que aceptamos la hipotesis alternativa en el caso de los sulfatos, ya que es inferior el p-valor al nivel de significacion, de manera que concluimos que *a mayores sulfatos (mas de `r sulphates.median`) mejor calidad de vino*.
 
-En el caso del alcohol y de la acidez volatil, aceptamos la hipotesis nula al tener un p-valor mayor al nivel de significación, de manera que **a menor alcohol (menos de `r alcohol.median`) y a menor acidez volátil (menos de `r volatile.acidity.median`) mejor calidad de vino**.
+En el caso del alcohol y de la acidez volatil, aceptamos la hipotesis nula al tener un p-valor mayor al nivel de significación, de manera que *a menor alcohol (menos de `r alcohol.median`) y a menor acidez volátil (menos de `r volatile.acidity.median`) mejor calidad de vino*.
 
 ### 4.3.3 Regresion Lineal
 
