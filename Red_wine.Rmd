@@ -197,7 +197,7 @@ redwine5a7 <- redwine[redwine$quality > 4 & redwine$quality < 7 ,]
 
 ### 4.2.1 Comprobacion de la normalidad
 
-Para comprobar que los valores que toman nuestras variables cuantitativas provienen de una población distribuida normalmente, utilizaremos la **prueba de normalidad de Anderson-Darling**. Si en la prueba se obtiene un p-valor superior al nivel de significación prefijado de 0,05, se considera que la variable en cuestión sigue una distribución normal.
+Para comprobar que los valores que toman nuestras variables cuantitativas provienen de una población distribuida normalmente, utilizaremos la *prueba de normalidad de Anderson-Darling*. Si en la prueba se obtiene un p-valor superior al nivel de significación prefijado de 0,05, se considera que la variable en cuestión sigue una distribución normal.
 
 ```{r}
 
@@ -217,7 +217,7 @@ for (i in 1:ncol(redwine)) {
 }
 ```
 
-Según este test ninguna de las variables sigue una distribución normal. Podríamos usar tambien los test de Kolmogorov-Smirnov y Saphiro-Wilk
+Según este test ninguna de las variables sigue una distribución normal. Podríamos usar tambien los *tests de Kolmogorov-Smirnov y Saphiro-Wilk*.
 
 ```{r}
 #Test Kolmogorov-Smirnov fixed.acidity
@@ -312,7 +312,7 @@ De todas maneras, al tratarse de una muestra grande, por el teorema central del 
 
 ### 4.2.2 Homogeneidad de la varianza
 
-Seguidamente, pasamos a estudiar la homogeneidad de varianzas mediante la aplicación del test de Fligner-Killeen. En este caso, estudiaremos la homogeneidad de cada variable según su calidad. En el siguiente test, la hipótesis nula consiste en que ambas varianzas son iguales.
+Seguidamente, pasamos a estudiar la homogeneidad de varianzas mediante la aplicación del *test de Fligner-Killeen*. En este caso, estudiaremos la homogeneidad de cada variable según su calidad. En el siguiente test, la hipótesis nula consiste en que ambas varianzas son iguales.
 
 ```{r}
 #Test Fligner-Killeen quality respecto a fixed.acidity
