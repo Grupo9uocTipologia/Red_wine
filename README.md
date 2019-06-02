@@ -8,5 +8,6 @@ Componentes:
 Ficheros:
 - Red_wine.Rmd con el código R y el markdown
 - Red_wine.pdf con las respuestas, generado a partir del anterior
+- winequality-red.csv con el conjunto de datos
 
 Junio 2019
