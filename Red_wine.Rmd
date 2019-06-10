@@ -42,7 +42,7 @@ Comprobamos que los tipos de datos asigados por R se corresponden a los indicado
 sapply(redwine, function(x) class(x))
 ```
 
-Observamos que los datos asignados por R son los especificados en el dataset: 11 variables numéricas y una entera.
+Observamos que los datos asignados por R son los especificados en el dataset, 11 variables numéricas y una entera, que se describen a continuación.
 
 ## 1.1 Descripción del conjunto de datos
 
@@ -66,6 +66,30 @@ Y la siguiente variable de salida (basada en datos sensoriales):
 
  *  calidad (puntuación entre 0 y 10)
 
+### 1.1.1 Resumen de las variables
+
+```{r}
+options(knitr.kable.NA = '')
+
+kable(summary(redwine)[,c(1,2,3,4,5,6)])
+kable(summary(redwine)[,c(7,8,9,10,11,12)])
+```
+
+### 1.1.2 Valores nulos
+
+```{r}
+sapply(redwine, function(x) sum(is.na(x)))
+```
+
+No hay valores nulos.
+
+### 1.1.3 Valores perdidos
+```{r}
+
+conperdidos <- !complete.cases(redwine)
+cat("Hay", length(which(conperdidos)), "observaciones con valores perdidos")
+```
+
 ## 1.2 Importancia y objetivos de los análisis
 
 A partir de este conjunto de datos se plantea la problemática de determinar qué variables son las que determinan la calidad de un vino tinto.
@@ -88,14 +112,37 @@ En este caso no descartaremos ninguna variable, ya que las usaremos todas para c
 
 En la descripción del dataset, la única variable con límite es la calidad, que estará entre 0 y 10, el resto no tienen límites definidos, por lo que no podremos descartar un registro que sea 0 por ser inválido.
 
-Al tratarse de variables numéricas, podríamos descartar los valores nulos, los buscamos a continuación:
+Al tratarse de variables numéricas, podríamos descartar los valores nulos, pero como vimos en 1.1.2, no hay valores nulos en el conjunto de datos.
+
+A continuación vamos a buscar los valores que son exactamente 0.
 
 ```{r}
-# Números de valores nulos por campo
-sapply(redwine, function(x) sum(is.na(x)))
+# Números de valores cero por variable
+cerofixedacidity<- as.data.frame(table(redwine[,1]=="0"))
+cerovolacidity<- as.data.frame(table(redwine[,2]=="0"))
+cerocitricacid<- as.data.frame(table(redwine[,3]=="0"))
+cerofressugar<- as.data.frame(table(redwine[,4]=="0"))
+cerochlorides<- as.data.frame(table(redwine[,5]=="0"))
+cerofreesulf<- as.data.frame(table(redwine[,6]=="0"))
+cerototalsulf<- as.data.frame(table(redwine[,7]=="0"))
+cerodensity<- as.data.frame(table(redwine[,8]=="0"))
+ceropH<- as.data.frame(table(redwine[,9]=="0"))
+cerosulph<- as.data.frame(table(redwine[,10]=="0"))
+ceroalcohol<- as.data.frame(table(redwine[,11]=="0"))
+ceroquality<- as.data.frame(table(redwine[,12]=="0"))
+print(cerocitricacid)
 ```
 
-No hay valores nulos en el conjunto de datos.
+
+La unica variable que contiene 0 es la citric acid.  Para resolverlo vamos a coger el valor medio de dicha variable y lo pondremos donde hayan valores 0
+
+```{r}
+# Mediana de la variable citric acid
+citridacidvalue<-median(redwine$citric.acid, na.rm = FALSE)
+# cambio el valor 0 por el de la mediana
+redwine$citric.acid[redwine$citric.acid == "0"] <- citridacidvalue
+```
+
 
 ## 3.2. Identificación y tratamiento de valores extremos.
 
@@ -182,13 +229,10 @@ Todos los extremos que se observan en los diagramas anteriores, son valores razo
 En este caso vamos a analizar todas la variables para saber su influencia en la calidad del vino, por lo que podrá ser de utilidad agrupar los vinos con calidad baja (menor que 5), media (5 o 6) y alta (mayor que 6), para poder analizar si existe alguna relación entre las variables dentro de cada grupo.
 
 ```{r}
-
 # Agrupación para vinos de calida alta 
 redwine7 <- redwine[redwine$quality >= 7,]
-
 # Agrupación para vinos de calida baja 
 redwine4 <- redwine[redwine$quality <= 4,]
-
 # Agrupación para vinos de calida media 
 redwine5a7 <- redwine[redwine$quality > 4 & redwine$quality < 7 ,]
 ```
@@ -200,7 +244,6 @@ redwine5a7 <- redwine[redwine$quality > 4 & redwine$quality < 7 ,]
 Para comprobar que los valores que toman nuestras variables cuantitativas provienen de una población distribuida normalmente, utilizaremos la *prueba de normalidad de Anderson-Darling*. Si en la prueba se obtiene un p-valor superior al nivel de significación prefijado de 0,05, se considera que la variable en cuestión sigue una distribución normal.
 
 ```{r}
-
 library(nortest)
 alpha = 0.05
 col.names = colnames(redwine)
@@ -222,87 +265,72 @@ Según este test ninguna de las variables sigue una distribución normal. Podrí
 ```{r}
 #Test Kolmogorov-Smirnov fixed.acidity
 ks.test(redwine$fixed.acidity, pnorm, mean(redwine$fixed.acidity), sd(redwine$fixed.acidity))
-
 shapiro.test(redwine$fixed.acidity)
 ```
 
 ```{r}
-
 #Test Kolmogorov-Smirnov volatile.acidity
 ks.test(redwine$volatile.acidity, pnorm, mean(redwine$volatile.acidity), sd(redwine$volatile.acidity))
-
 shapiro.test(redwine$volatile.acidity)
 ```
 
 ```{r}
 #Test Kolmogorov-Smirnov citric.acid
 ks.test(redwine$citric.acid, pnorm, mean(redwine$citric.acid), sd(redwine$citric.acid))
-
 shapiro.test(redwine$citric.acid)
 ```
 
 ```{r}
 #Test Kolmogorov-Smirnov residual.sugar
 ks.test(redwine$residual.sugar, pnorm, mean(redwine$residual.sugar), sd(redwine$residual.sugar))
-
 shapiro.test(redwine$residual.sugar)
 ```
 
 ```{r}
-
 #Test Kolmogorov-Smirnov chlorides
 ks.test(redwine$chlorides, pnorm, mean(redwine$chlorides), sd(redwine$chlorides))
-
 shapiro.test(redwine$chlorides)
-
 ```
 
 ```{r}
 #Test Kolmogorov-Smirnov free.sulfur.dioxide
 ks.test(redwine$free.sulfur.dioxide, pnorm, mean(redwine$free.sulfur.dioxide), sd(redwine$free.sulfur.dioxide))
-
 shapiro.test(redwine$free.sulfur.dioxide)
 ```
 
 ```{r}
 #Test Kolmogorov-Smirnov total.sulfur.dioxide
 ks.test(redwine$total.sulfur.dioxide, pnorm, mean(redwine$total.sulfur.dioxide), sd(redwine$total.sulfur.dioxide))
-
 shapiro.test(redwine$total.sulfur.dioxide)
 ```
 
 ```{r}
 #Test Kolmogorov-Smirnov density
 ks.test(redwine$density, pnorm, mean(redwine$density), sd(redwine$density))
-
 shapiro.test(redwine$density)
 ```
 
 ```{r}
 #Test Kolmogorov-Smirnov pH
 ks.test(redwine$pH, pnorm, mean(redwine$pH), sd(redwine$pH))
-
 shapiro.test(redwine$pH)
 ```
 
 ```{r}
 #Test Kolmogorov-Smirnov sulphates
 ks.test(redwine$sulphates, pnorm, mean(redwine$sulphates), sd(redwine$sulphates))
-
 shapiro.test(redwine$sulphates)
 ```
 
 ```{r}
 #Test Kolmogorov-Smirnov alcohol
 ks.test(redwine$alcohol, pnorm, mean(redwine$alcohol), sd(redwine$alcohol))
-
 shapiro.test(redwine$alcohol)
 ```
 
 ```{r}
 #Test Kolmogorov-Smirnov quality
 ks.test(redwine$quality, pnorm, mean(redwine$quality), sd(redwine$quality))
-
 shapiro.test(redwine$quality)
 ```
 
@@ -316,60 +344,61 @@ Seguidamente, pasamos a estudiar la homogeneidad de varianzas mediante la aplica
 
 ```{r}
 #Test Fligner-Killeen quality respecto a fixed.acidity
-fligner.test(quality ~ fixed.acidity, data = redwine)
+fligner.test(fixed.acidity ~ quality, data = redwine)
 ```
 
 ```{r}
 #Test Fligner-Killeen quality respecto a volatile.acidity
-fligner.test(quality ~ volatile.acidity, data = redwine)
+fligner.test(volatile.acidity ~quality , data = redwine)
 ```
 
 ```{r}
 #Test Fligner-Killeen quality respecto a citric.acid
-fligner.test(quality ~ citric.acid, data = redwine)
+fligner.test(citric.acid ~ quality, data = redwine)
 ```
 
 ```{r}
 #Test Fligner-Killeen quality respecto a residual.sugar
-fligner.test(quality ~ residual.sugar, data = redwine)
+fligner.test(residual.sugar ~ quality, data = redwine)
 ```
 
 ```{r}
 #Test Fligner-Killeen quality respecto a chlorides
-fligner.test(quality ~ chlorides, data = redwine)
+fligner.test(chlorides ~  quality, data = redwine)
 ```
 
 ```{r}
 #Test Fligner-Killeen quality respecto a free.sulfur.dioxide
-fligner.test(quality ~ free.sulfur.dioxide, data = redwine)
+fligner.test(free.sulfur.dioxide  ~ quality, data = redwine)
 ```
 
 ```{r}
 #Test Fligner-Killeen quality respecto a total.sulfur.dioxide
-fligner.test(quality ~ total.sulfur.dioxide, data = redwine)
+fligner.test(total.sulfur.dioxide  ~ quality, data = redwine)
 ```
 
 ```{r}
 #Test Fligner-Killeen quality respecto a density
-fligner.test(quality ~ density, data = redwine)
+fligner.test(density ~  quality, data = redwine)
 ```
 
 ```{r}
 #Test Fligner-Killeen quality respecto a pH
-fligner.test(quality ~ pH, data = redwine)
+fligner.test(pH  ~ quality, data = redwine)
 ```
 
 ```{r}
 #Test Fligner-Killeen quality respecto a sulphates
-fligner.test(quality ~ sulphates, data = redwine)
+fligner.test(sulphates  ~ quality, data = redwine)
 ```
 
 ```{r}
 #Test Fligner-Killeen quality respecto a alcohol
-fligner.test(quality ~ alcohol, data = redwine)
+fligner.test( alcohol ~ quality, data = redwine)
+
 ```
 
-En este caso podemos decir que las variables *total.sulfur.dioxide*, *sulphates* y *alcohol* tienen varianzas estadísticamente diferentes a *quality*, al tener un p-valor menor que el nivel de significacion del 0.05.
+En este caso podemos decir que las variables *volatile.acidity*, *fixed.acidity*, *free.sulfur.dioxide*, *total.sulfur.dioxide*, *sulphates*, *density* y *alcohol* tienen varianzas estadísticamente diferentes a *quality*, al tener un p-valor menor que el nivel de significacion del 0.05.
 
 ## 4.3. Aplicación de pruebas estadísticas para comparar los grupos de datos. 
 
@@ -440,16 +469,20 @@ Segun el coeficiente de correlación de Spearman, los atributos que tienen mayor
 
 ### 4.3.2 Contraste de hipótesis
 
-Procederemos ahora ha hacer un contraste de hipótesis sobre las tres variables que hemos encontrado en el apartado anterior. Para ello buscaremos la mediana de las tres variables, para que nos sirva de valor limite. Compararemos si, es cuando el valor de la variable es menor al valor medio cuando influye en la calidad, o por el contrario, si influye cuando es superior al valor medio.
+Procederemos ahora ha hacer un contraste de hipótesis sobre las cuatro variables con el p-valor más bajo que hemos encontrado en el apartado anterior. Para ello buscaremos la mediana de las tres variables, para que nos sirva de valor límite. Compararemos si, es cuando el valor de la variable es menor al valor medio cuando influye en la calidad, o por el contrario, si influye cuando es superior al valor medio.
 
 ```{r}
-#medianas de  volatile.acidity, alcohol y sulphates
+#medianas de  volatile.acidity, total.sulfur.dioxide, alcohol y density
 volatile.acidity.median = median(redwine$volatile.acidity)
 volatile.acidity.median
 alcohol.median = median(redwine$alcohol)
 alcohol.median
-sulphates.median = median(redwine$sulphates)
-sulphates.median
+total.sulfur.dioxide.median = median(redwine$total.sulfur.dioxide)
+total.sulfur.dioxide.median
+density.median = median(redwine$density)
+density.median
+
+
 ```
 
 Separaremos las muestras según estos valores:
@@ -458,14 +491,16 @@ Separaremos las muestras según estos valores:
 #nuevos dataframes con separacion de volatile.acidity
 redwineVAinf <-redwine[redwine$volatile.acidity < volatile.acidity.median,]$quality
 redwineVAsup <-redwine[redwine$volatile.acidity > volatile.acidity.median,]$quality
-
 #nuevos dataframes con separacion de alcohol
 redwineAinf <-redwine[redwine$alcohol < alcohol.median,]$quality
 redwineAsup <-redwine[redwine$alcohol > alcohol.median,]$quality
+#nuevos dataframes con separacion de total.sulfur.dioxide
+redwineTSinf <-redwine[redwine$total.sulfur.dioxide < total.sulfur.dioxide.median,]$quality
+redwineTSsup <-redwine[redwine$total.sulfur.dioxide > total.sulfur.dioxide.median,]$quality
 
-#nuevos dataframes con separacion de sulphates
-redwineSinf <-redwine[redwine$sulphates < sulphates.median,]$quality
-redwineSsup <-redwine[redwine$sulphates > sulphates.median,]$quality
+#nuevos dataframes con separacion de density
+redwineDinf <-redwine[redwine$density < density.median,]$quality
+redwineDsup <-redwine[redwine$density > density.median,]$quality
 ```
 
 Los valores medios los hemos obviado para simplificar en la practica los calculos, ya que al ser una muestra grande la influencia de estos datos coincidentes no afectan tanto.
@@ -490,6 +525,7 @@ Tomaremos un nivel de significación del 0,05.
 ```{r}
 #test T de Student sobre los dataframes separados de volatile.acidity
 t.test(redwineVAinf, redwineVAsup, alternative = "less")
+
 ```
 
 Planteamos ahora el segundo caso que consiste en el contraste de hipótesis de dos muestras sobre la diferencia de medias (la primera muestra es de los vinos con la variable alcohol inferior a `r alcohol.median` y la segunda muestra es de los vinos con la variable alcohol mayores a `r alcohol.median`), el cual es unilateral atendiendo a la formulación de la hipótesis alternativa:
@@ -512,7 +548,7 @@ Tomaremos un nivel de significación del 0,05.
 t.test(redwineAinf, redwineAsup, alternative = "less")
 ```
 
-Planteamos ahora el tercer caso que consiste en el contraste de hipótesis de dos muestras sobre la diferencia de medias (la primera muestra es de los vinos con sulfaatos inferior a `r sulphates.median` y la segunda muestra es de los vinos con sulfatos mayores a `r sulphates.median`), el cual es unilateral atendiendo a la formulación de la hipótesis alternativa:
+Planteamos ahora el tercer caso que consiste en el contraste de hipótesis de dos muestras sobre la diferencia de medias (la primera muestra es de los vinos con sulfatos inferior a `r total.sulfur.dioxide.median` y la segunda muestra es de los vinos con sulfatos mayores a `r total.sulfur.dioxide.median`), el cual es unilateral atendiendo a la formulación de la hipótesis alternativa:
 
 $$
 \left\{
@@ -528,71 +564,102 @@ Donde $\mu1$ es la media de la población de la que se extrae la primera muestra
 Tomaremos un nivel de significación del 0,05.
 
 ```{r}
-#test T de Student sobre los dataframes separados de sulphates
-t.test(redwineSinf, redwineSsup, alternative = "less")
+#test T de Student sobre los dataframes separados de total.sulfur.dioxide
+t.test(redwineTSinf, redwineTSsup, alternative = "less")
 ```
 
-Del contraste de hipotesis sacamos que aceptamos la hipotesis alternativa en el caso de los sulfatos, ya que es inferior el p-valor al nivel de significacion, de manera que concluimos que *a mayores sulfatos (mas de `r sulphates.median`) mejor calidad de vino*.
+El valor que tenemos inferior el p-valor al del nivel de significación es que corresponde al *alcohol*. En este aceptamos que el si el vino tiene más alcohol el vino tiene mas calidad.
 
-En el caso del alcohol y de la acidez volatil, aceptamos la hipotesis nula al tener un p-valor mayor al nivel de significación, de manera que *a menor alcohol (menos de `r alcohol.median`) y a menor acidez volátil (menos de `r volatile.acidity.median`) mejor calidad de vino*.
+En el resto de ejemplos sobre las variables *density* y *total.sulfur.dioxide*, el p valor es 1, por tanto aceptamos la hipótesis nula indicándonos que estos valores no afectan a la calidad del vino al tener medias parecidas
 
 ### 4.3.3 Regresion Lineal
 
-Uno de los objetivos al inspeccionar el dataset era poder predecir la calidad del vino dependiendo de las variables. De esta manera vamos a proceder a calcular mediante un modelo de regresión lineal usando laas variables más influyentes detectadas en el primer punto de este primer apartado.
+Uno de los objetivos al inspeccionar el dataset era poder predecir la calidad del vino dependiendo de las variables. De esta manera vamos a proceder a calcular mediante un modelo de regresión lineal usando las variables más influyentes detectadas en el primer punto de este primer apartado.
 
-Obtendremos varios modelos de regresion lineal segun estas variables y elegiremos el modelo mas eficiente al compararlos mediante el coeficiente de determinación.
+Entrenamos varios modelos de regresión lineal utilizando validación cruzada, y elegiremos el modelo mas eficiente comparando su coeficiente de determinación.
 
-```{r}
+#### 4.3.3.1 Modelo 1: sulphates, alcohol, volatile.acidity
 
-# Variable a predecir
-calidad = redwine$quality
+```{r Modelo 1}
+library(caret)
 
-# variables cuantitativas con mayor coeficiente
-acidezFija=redwine$fixed.acidity
-acidezVolatil=redwine$volatile.acidity
-sulfatos=redwine$sulphates
-chloridos=redwine$chlorides
-alcohol=redwine$alcohol
-densidad=redwine$density
-totalSulfatos=redwine$sulphates
-acidoCitrico=redwine$citric.acid
-
-# Generación de varios modelos
-modelo1 <- lm(calidad ~ sulfatos + alcohol + acidezVolatil , data = redwine)
-modelo2 <- lm(calidad ~ sulfatos + alcohol + acidoCitrico + acidezFija +acidezVolatil+chloridos+densidad+totalSulfatos, data = redwine)
-modelo3 <- lm(calidad ~ acidezFija +acidezVolatil+chloridos+densidad+totalSulfatos, data = redwine)
-modelo4 <- lm(calidad ~ alcohol + acidoCitrico + acidezFija +acidezVolatil+chloridos+densidad+totalSulfatos, data = redwine)
-modelo5 <- lm(calidad ~ sulfatos +  acidoCitrico + acidezFija +acidezVolatil+chloridos+densidad+totalSulfatos, data = redwine)
-modelo6 <- lm(calidad ~ sulfatos + alcohol + acidezFija +acidezVolatil+chloridos+densidad+totalSulfatos, data = redwine)
+modelo1 <- train(
+  quality ~ sulphates+alcohol+volatile.acidity, 
+  redwine, method = "lm", trControl = trainControl(method = "cv", number = 10))
+print(modelo1)
 ```
 
-Vamos a calcular ahora el coeficiente de determinación de los modelos obtenidos para medir la bodad del ajuste. 
+#### 4.3.3.2 Modelo 2: sulphates, fixed.acidity, volatile.acidity, chlorides, density
+
+```{r Modelo 2}
+
+modelo2 <- train(
+  quality ~ sulphates+fixed.acidity+volatile.acidity+chlorides+density, 
+  redwine, method = "lm", trControl = trainControl(method = "cv", number = 10))
+print(modelo2)
+```
+
+#### 4.3.3.3 Modelo 3: sulphates, alcohol, citric.acid, fixed.acidity, volatile.acidity, chlorides, density
+
+```{r Modelo 3}
+
+modelo3 <- train(
+  quality ~ sulphates+alcohol+citric.acid+fixed.acidity+volatile.acidity+chlorides+density, 
+  redwine, method = "lm",trControl = trainControl(method = "cv", number = 10))
+print(modelo3)
+```
+
+#### 4.3.3.4 Modelo 4: sulphates, citric.acid, fixed.acidity, volatile.acidity, chlorides, density
+
+```{r Modelo 4}
+
+modelo4 <- train(
+  quality ~ sulphates+citric.acid+fixed.acidity+volatile.acidity+chlorides+density, 
+  redwine, method = "lm",trControl = trainControl(method = "cv", number = 10))
+print(modelo4)
+```
+
+#### 4.3.3.5 Modelo 5: sulphates, alcohol, fixed.acidity, volatile.acidity, chlorides, density
+
+```{r Modelo 5}
+
+modelo5 <- train(
+  quality ~ sulphates+alcohol+fixed.acidity+volatile.acidity+chlorides+density, 
+  redwine, method = "lm",trControl = trainControl(method = "cv", number = 10))
+print(modelo5)
+```
+
+#### 4.3.3.6 Elección del modelo
+
+Comparamos el coeficiente de determinación de los modelos obtenidos para elegir el que ajuste mejor. 
 
 ```{r}
-
 # Tabla con los coeficientes de determinación de cada modelo
 tabla.coeficientes <- matrix(c(1, summary(modelo1)$r.squared,
 2, summary(modelo2)$r.squared,
 3, summary(modelo3)$r.squared,
 4, summary(modelo4)$r.squared,
-5, summary(modelo5)$r.squared,
-6, summary(modelo6)$r.squared),
+5, summary(modelo5)$r.squared),
 ncol = 2, byrow = TRUE)
 colnames(tabla.coeficientes) <- c("Modelo", "R^2")
 tabla.coeficientes
 ```
 
-En este caso elegiremos el modelo 4 ya que, aunque tenemos el mismo resultado en el modelo 2, intervienen menos variables en el cálculo.
+En este caso elegiremos el modelo 3 porque tiene el coeficiente de determinación más alto, es el que mejor explica la variabilidad de la muestra y mayor capacidad predictiva tiene.
 
 Ahora, empleando este modelo, podemos predecir la calidad del vino a partir de sus características, como en el siguiente ejemplo:
 
 ```{r}
 
-newdata <- data.frame(alcohol=6, acidoCitrico=0.56, acidezFija=6.2, acidezVolatil=0.65, chloridos=0.08, densidad= 0.88, totalSulfatos=0.25)
+newdata <- data.frame(
+  alcohol=6, citric.acid=0.56, fixed.acidity=6.2, volatile.acidity=0.65, 
+  chlorides=0.08, density= 0.88, sulphates=0.25)
 
-# Predecir la calidad
-predict(modelo4, newdata)
+predict = predict(modelo3, newdata)
 ```
+
+El modelo estima una calidad de `r floor(predict)` para un vino tinto con las características indicadas.
+
 
 # 5. Representación de los resultados a partir de tablas y gráficas.
 
@@ -672,17 +739,18 @@ qqline(redwine$quality,col=2)
 
 # 6. Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema?
 
-Hemos podido extraer algunas conclusiones generales acerca de la calidad de un vino tinto, como que su calidad será mayor cuanto menor sea su acidez volatil, por ejemplo.
+Hemos podido extraer algunas conclusiones generales acerca de la calidad de un vino tinto, como que su calidad será mayor cuanto menor sea su acidez volatil o mayor su nivel de alcohol, por ejemplo.
 
-Por otra parte, hemos construido un modelo de regresión lineal capaz de predecir la calidad de un vino tinto a partir de sus características, de manera que a partir de la calidad obtenida, una bodega, por ejemplo, podría establecer su precio. Es decir, hemos podido responder al problema planteado, como conocer la calidad de un vino tinto a partir de sus características fisicoquímicas.
+También hemos diseñado varios modelos de regresión lineal para predecir la calidad del vino tinto, utilizando factores distintos en cada uno de ellos y entrenándolos con validación cruzada. Hemos seleccionado el de mayor capacidad predictiva, escogiendo para ello el modelo con mayor coeficiente de determinación. 
+
+De esta manera, hemos podido predecir la calidad de un vino a partir de sus características fisicoquímicas, de manera que una bodega, por ejemplo, podrá fijar el precio de un vino a partir de su calidad, o un restaurante, escoger el de mayor calidad en un nivel de precio. Es decir, hemos podido responder al problema planteado, conocer la calidad de un vino tinto a partir de sus características fisicoquímicas.
 
 # 7. Código: Hay que adjuntar el código, preferiblemente en R, con el que se ha realizado la limpieza, análisis y validación de los datos.
 
-La práctica se ha realizado utilizando formato R Markdown, para construir documentos dinámicos con R, con las respuestas a las preguntas y pedazos de código R embebido. 
+La práctica se ha realizado en formato R Markdown para construir el documento con R de forma dinámica, con las respuestas a las preguntas y pedazos de código R embebidos. La entrega consiste en un archivo Rmd y el PDF que se genera automáticamente a partir del archivo anterior.
 
 # 8. Contribuciones
 
  *  Investigación previa: MC, AD
  *  Redacción de las respuestas: MC, AD
  *  Desarrollo código: MC, AD
-
